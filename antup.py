@@ -26,14 +26,13 @@ NETKEY = '\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
 class Listener(event.EventCallback):
     def process(self, msg):
         if isinstance(msg, message.ChannelBroadcastDataMessage):
-            #print 'Speed:', ord(msg.payload[-1])
-            print 'yolo'
+            print 'Data:', ord(msg.payload[-1])
             #socket.send(ord(msg.payload[-1])) # Change this to JSON data
             # Add lock to method since sockets are not thread-safe
 
 
 # Initialize
-stick = driver.USB2Driver(idProduct=0x1009)
+stick = driver.USB2Driver(idProduct=0x1008)
 antnode = node.Node(stick)
 antnode.start()
 
