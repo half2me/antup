@@ -17,8 +17,11 @@ NETKEY = '\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
 # A run-the-mill event listener
 class HRMListener(event.EventCallback):
     def process(self, msg):
+        print "yolo"
         if isinstance(msg, message.ChannelBroadcastDataMessage):
-            print 'Heart Rate:', ord(msg.payload[8])
+            for i in msg.payload:
+                print i
+            #print 'Heart Rate:', ord(msg.payload[8])
             #msg = message.ChannelRequestMessage(message_id=MESSAGE_CHANNEL_ID)
 
             #channel.node.driver.write(msg.encode())
@@ -44,9 +47,9 @@ antnode.setNetworkKey(0, key)
 channel = antnode.getFreeChannel()
 channel.name = 'C:HRM'
 channel.assign('N:ANT+', CHANNEL_TYPE_TWOWAY_RECEIVE)
-channel.setID(120, 0, 0)
+channel.setID(123, 0, 0)
 channel.setSearchTimeout(TIMEOUT_NEVER)
-channel.setPeriod(8070)
+channel.setPeriod(8118)
 channel.setFrequency(57)
 channel.open()
 

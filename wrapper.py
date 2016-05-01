@@ -25,3 +25,16 @@ class Device:
 
 class Node:
     """ANT+ Node"""
+
+    def scan(self):
+        return None
+
+    def getFreeChannel(self):
+        return Channel()
+
+
+class Channel:
+    """ANT+ Channel"""
+
+class Message:
+    """ANT+ Message"""
