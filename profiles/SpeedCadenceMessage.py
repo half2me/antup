@@ -18,7 +18,8 @@ def lazyproperty(fn):
 class SpeedCadenceMessage(Message):
     """ Message from Speed & Cadence sensor """
 
-    def __init__(self, raw):
+    def __init__(self, previous, raw):
+        Message.__init__(self, previous)
         self.__raw = raw
 
     @property
@@ -28,7 +29,7 @@ class SpeedCadenceMessage(Message):
 
     @lazyproperty
     def cadenceEventTime(self):
-        """ Represents the time of the last valid bike cadence event (1/1024 sec)"""
+        """ Represents the time of the last valid bike cadence event (1/1024 sec) """
         return (self.__raw[2] << 8) | self.__raw[1]
 
     @lazyproperty
@@ -38,10 +39,20 @@ class SpeedCadenceMessage(Message):
 
     @lazyproperty
     def speedEventTime(self):
-        """ Represents the time of the last valid bike speed event (1/1024 sec)"""
+        """ Represents the time of the last valid bike speed event (1/1024 sec) """
         return (self.__raw[6] << 8) | self.__raw[5]
 
     @lazyproperty
     def cumulativeSpeedRevolutionCount(self):
-        """ Represents the total number of pedal revolutions """
+        """ Represents the total number of wheel revolutions """
         return (self.__raw[8] << 8) | self.__raw[7]
+
+    def speed(self, c):
+        """
+        :param c: circumference of the wheel (mm)
+        :return: The current speed (m/sec)
+        """
+        if self.previous is None:
+            return 0
+        return (self.cumulativeSpeedRevolutionCount - self.previous.cumulativeSpeedRevolutionCount) * 1.024 * c / (
+            self.speedEventTime - self.previous.speedEventTime)

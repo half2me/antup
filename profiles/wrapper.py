@@ -38,3 +38,9 @@ class Channel:
 
 class Message:
     """ANT+ Message"""
+
+    def __init__(self, previous):
+        """
+        :param previous: Previous message
+        """
+        self.previous = previous

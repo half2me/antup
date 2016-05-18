@@ -21,6 +21,11 @@ NETKEY = '\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
 
 # Callback for ANT+ events
 class Listener(event.EventCallback):
+
+    def __init__(self):
+        self.previousMessageSpeedCadence = None
+        self.previousMessagePower = None
+
     def process(self, msg, channel):
         if isinstance(msg, message.ChannelBroadcastDataMessage):
             if channel.name == "speedcadence":
@@ -28,17 +33,16 @@ class Listener(event.EventCallback):
                 for i in msg.payload:
                     print("%X" % i + " ", end="")
                 print("")
-                decoded = SpeedCadenceMessage(msg.payload)
-                print("Cumulative Cadence Rev Count: %d" % decoded.cumulativeCadenceRevolutionCount)
-                print("Cadence Event Time: %d" % decoded.cadenceEventTime)
-                print("Cumulative Speed Rev Count: %d" % decoded.cumulativeSpeedRevolutionCount)
-                print("Speed Event Time: %d" % decoded.speedEventTime)
+                decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload)
+                print("Speed: %f" % decoded.speed(2096))
                 print("")
+                self.previousMessageSpeedCadence = decoded
             if channel.name == "power":
                 print("Power: ", end="")
                 for i in msg.payload:
                     print("%X" % i + " ", end="")
                 print("")
+                self.previousMessagePower = decoded
 
 
 # Initialize
