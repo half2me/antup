@@ -35,6 +35,7 @@ class Listener(event.EventCallback):
                 print("")
                 decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload)
                 print("Speed: %f" % decoded.speed(2096))
+                print("Cadence: %f" % decoded.cadence())
                 print("")
                 self.previousMessageSpeedCadence = decoded
             if channel.name == "power":

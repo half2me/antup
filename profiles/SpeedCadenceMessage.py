@@ -56,3 +56,12 @@ class SpeedCadenceMessage(Message):
             return 0
         return (self.cumulativeSpeedRevolutionCount - self.previous.cumulativeSpeedRevolutionCount) * 1.024 * c / (
             self.speedEventTime - self.previous.speedEventTime)
+
+    def cadence(self):
+        """
+        :return: RPM
+        """
+        if self.previous is None:
+            return 0
+        return (self.cumulativeCadenceRevolutionCount - self.previous.cumulativeCadenceRevolutionCount) * 1024 * 60 / (
+            self.cadenceEventTime - self.previous.cadenceEventTime)
