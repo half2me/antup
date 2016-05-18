@@ -18,7 +18,7 @@ class CandyWrapper:
 
 
 class Device:
-    """Wrapper for ANT+ capable hardwear"""
+    """Wrapper for ANT+ capable hardware"""
 
     def __init__(self):
         self.node = Node()
