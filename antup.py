@@ -5,20 +5,28 @@ from __future__ import print_function
 
 import sys
 import time
-import zmq
 
 from ant.core import driver
 from ant.core import node
 from ant.core import event
 from ant.core import message
 from ant.core.constants import *
+from twisted.internet import reactor
+from autobahn.websocket import WebSocketClientFactory, WebSocketClientProtocol, connectWS
 
 from config import *
 
-# ZMQ
-zcontext = zmq.Context()
-socket = zcontext.socket(zmq.REQ)
-socket.connect ("tcp://localhost:9999")
+
+class AntRaceProtocol(WebSocketClientProtocol):
+
+   def register(self):
+      self.sendMessage("Hello, world!")
+
+   def onOpen(self):
+      self.sendMessage("register")
+
+   def onMessage(self, msg, binary):
+      print ("Got message: " + msg)
 
 NETKEY = '\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
 
@@ -33,6 +41,7 @@ class Listener(event.EventCallback):
             print("")
             data = {'bike_id': 1, 'timestamp': time.time(), channel.name: 50}
             socket.send_json(data)
+            print("Sent!")
             # Add lock to method since sockets are not thread-safe
 
 
@@ -66,7 +75,14 @@ channel2.frequency = 57
 channel2.open()
 channel2.registerCallback(Listener())
 
+# Web Socket Magic
+factory = WebSocketClientFactory("ws://localhost:8080")
+factory.protocol = AntRaceProtocol
+connectWS(factory)
+reactor.run()
+
 # Wait
+print("Sleeping")
 time.sleep(120)
 
 # Shutdown
