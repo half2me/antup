@@ -12,8 +12,7 @@ from ant.core import event
 from ant.core import message
 from ant.core.constants import *
 
-from config import *
-
+from profiles.PowerMessage import PowerMessage
 from profiles.SpeedCadenceMessage import SpeedCadenceMessage
 
 NETKEY = '\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
@@ -28,22 +27,26 @@ class Listener(event.EventCallback):
 
     def process(self, msg, channel):
         if isinstance(msg, message.ChannelBroadcastDataMessage):
+            print("RAW: ", end="")
+            for i in msg.payload:
+                print("%X" % i + " ", end="")
+            print("")
+
+            # Speed and Cadence
             if channel.name == "speedcadence":
-                print("RAW: ", end="")
-                for i in msg.payload:
-                    print("%X" % i + " ", end="")
-                print("")
                 decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload)
                 print("Speed: %f" % decoded.speed(2096))
                 print("Cadence: %f" % decoded.cadence())
                 print("")
                 self.previousMessageSpeedCadence = decoded
+
+            # Power
             if channel.name == "power":
-                print("Power: ", end="")
-                for i in msg.payload:
-                    print("%X" % i + " ", end="")
-                print("")
-                self.previousMessagePower = decoded
+                if msg.payload[1] == 0x10: # Standard Power Only!
+                    decoded = PowerMessage(self.previousMessagePower, msg.payload)
+                    print("Power: %f" % decoded.averagePower())
+                    print("")
+                    self.previousMessagePower = None
 
 
 # Initialize

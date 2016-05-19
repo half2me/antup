@@ -1,31 +1,8 @@
-from __future__ import print_function
-
-from profiles.wrapper import Message
-
-
-def lazyproperty(fn):
-    attr_name = '__' + fn.__name__
-
-    @property
-    def _lazyprop(self):
-        if not hasattr(self, attr_name):
-            setattr(self, attr_name, fn(self))
-        return getattr(self, attr_name)
-
-    return _lazyprop
+from profiles.wrapper import Message, lazyproperty
 
 
 class SpeedCadenceMessage(Message):
     """ Message from Speed & Cadence sensor """
-
-    def __init__(self, previous, raw):
-        Message.__init__(self, previous)
-        self.__raw = raw
-
-    @property
-    def raw(self):
-        """ The raw message in byte array """
-        return self.__raw
 
     @lazyproperty
     def cadenceEventTime(self):

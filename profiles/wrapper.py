@@ -1,3 +1,15 @@
+def lazyproperty(fn):
+    attr_name = '__' + fn.__name__
+
+    @property
+    def _lazyprop(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self))
+        return getattr(self, attr_name)
+
+    return _lazyprop
+
+
 class CandyWrapper:
     """Wrapper for the ANT+ Communication and Devices"""
 
@@ -23,6 +35,7 @@ class Device:
     def __init__(self):
         self.node = Node()
 
+
 class Node:
     """ANT+ Node"""
 
@@ -36,11 +49,18 @@ class Node:
 class Channel:
     """ANT+ Channel"""
 
+
 class Message:
     """ANT+ Message"""
 
-    def __init__(self, previous):
+    def __init__(self, previous, raw):
         """
         :param previous: Previous message
         """
         self.previous = previous
+        self.__raw = raw
+
+    @property
+    def raw(self):
+        """ The raw message in byte array """
+        return self.__raw
