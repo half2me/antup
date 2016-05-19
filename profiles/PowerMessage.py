@@ -52,4 +52,6 @@ class PowerMessage(Message):
         between the received messages
         :return: Average power (Watts)
         """
+        if self.previous is None:
+            return 0
         return (self.accumulatedPower - self.previous.accumulatedPower) / (self.eventCount - self.previous.eventCount)
