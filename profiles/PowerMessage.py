@@ -37,12 +37,12 @@ class PowerMessage(Message):
         of the update event count. The accumulated power field rolls over at 65.535kW.
         :return:
         """
-        return (self.__raw[6] << 8) | self.__raw[5]
+        return (self.raw[6] << 8) | self.raw[5]
 
     @lazyproperty
     def instantaneousPower(self):
         """ Instantaneous power (W) """
-        return (self.__raw[8] << 8) | self.__raw[7]
+        return (self.raw[8] << 8) | self.raw[7]
 
     @lazyproperty
     def averagePower(self):
@@ -53,5 +53,5 @@ class PowerMessage(Message):
         :return: Average power (Watts)
         """
         if self.previous is None:
-            return 0
+            return self.instantaneousPower
         return (self.accumulatedPower - self.previous.accumulatedPower) / (self.eventCount - self.previous.eventCount)
