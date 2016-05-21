@@ -1,3 +1,15 @@
+def lazyproperty(fn):
+    attr_name = '__' + fn.__name__
+
+    @property
+    def _lazyprop(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self))
+        return getattr(self, attr_name)
+
+    return _lazyprop
+
+
 class CandyWrapper:
     """Wrapper for the ANT+ Communication and Devices"""
 
@@ -18,10 +30,11 @@ class CandyWrapper:
 
 
 class Device:
-    """Wrapper for ANT+ capable hardwear"""
+    """Wrapper for ANT+ capable hardware"""
 
     def __init__(self):
         self.node = Node()
+
 
 class Node:
     """ANT+ Node"""
@@ -35,6 +48,3 @@ class Node:
 
 class Channel:
     """ANT+ Channel"""
-
-class Message:
-    """ANT+ Message"""

@@ -14,7 +14,10 @@ from ant.core.constants import *
 from twisted.internet import reactor
 from autobahn.websocket import WebSocketClientFactory, WebSocketClientProtocol, connectWS
 
-from config import *
+from profiles.PowerMessage import PowerMessage
+from profiles.SpeedCadenceMessage import SpeedCadenceMessage
+
+NETKEY = '\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
 
 
 class AntRaceProtocol(WebSocketClientProtocol):
@@ -28,38 +31,47 @@ class AntRaceProtocol(WebSocketClientProtocol):
    def onMessage(self, msg, binary):
       print ("Got message: " + msg)
 
-NETKEY = '\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
-
-
-# Speed EL
+# Callback for ANT+ events
 class Listener(event.EventCallback):
+
+    def __init__(self):
+        self.previousMessageSpeedCadence = None
+        self.previousMessagePower = None
+
     def process(self, msg, channel):
         if isinstance(msg, message.ChannelBroadcastDataMessage):
-            print("Speed: ", end="")
-            for i in msg.payload:
-                print("%X" % i + " ", end="")
-            print("")
-            data = {'bike_id': 1, 'timestamp': time.time(), channel.name: 50}
-            socket.send_json(data)
-            print("Sent!")
-            # Add lock to method since sockets are not thread-safe
+            # Speed and Cadence
+            if channel.name == "speedcadence":
+                decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload)
+                print("Speed: %f" % decoded.speed(2096))
+                print("Cadence: %f" % decoded.cadence)
+                print("")
+                self.previousMessageSpeedCadence = decoded
+
+            # Power
+            if channel.name == "power":
+                if msg.payload[1] == 0x10: # Standard Power Only!
+                    decoded = PowerMessage(self.previousMessagePower, msg.payload)
+                    print("Power: %f" % decoded.averagePower)
+                    print("")
+                    self.previousMessagePower = None
 
 
 # Initialize
-stick = driver.USB2Driver(idProduct=0x1008)
+stick = driver.USB2Driver(idProduct=0x1009)
 antnode = node.Node(stick)
 antnode.start()
 
 network = node.Network(NETKEY, 'N:ANT+')
 antnode.setNetworkKey(0, network)
 
-# Setup Speed channel
+# Setup Speed & Cadence sensor channel
 channel1 = antnode.getFreeChannel()
-channel1.name = 'speed'
+channel1.name = "speedcadence"
 channel1.assign(network, CHANNEL_TYPE_TWOWAY_RECEIVE)
-channel1.setID(123, 0, 0)
+channel1.setID(121, 0, 0)
 channel1.searchTimeout = TIMEOUT_NEVER
-channel1.period = 8118
+channel1.period = 8086
 channel1.frequency = 57
 channel1.open()
 channel1.registerCallback(Listener())
@@ -82,10 +94,11 @@ connectWS(factory)
 reactor.run()
 
 # Wait
-print("Sleeping")
 time.sleep(120)
 
 # Shutdown
 channel1.close()
 channel1.unassign()
+channel2.close()
+channel2.unassign()
 antnode.stop()
