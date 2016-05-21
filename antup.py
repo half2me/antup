@@ -83,7 +83,7 @@ ws = create_connection("ws://127.0.0.1:8080")
 ws.send(u'{"cmd":"bike-register", "id":1}'.encode('utf8'))
 
 # Wait
-time.sleep(120)
+time.sleep(60*60)
 
 # Shutdown
 channel1.close()
