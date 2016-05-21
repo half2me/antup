@@ -19,18 +19,6 @@ from profiles.SpeedCadenceMessage import SpeedCadenceMessage
 
 NETKEY = '\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
 
-
-class AntRaceProtocol(WebSocketClientProtocol):
-
-    def onOpen(self):
-       self.sendMessage(u'{"cmd":"register", "id":1}'.encode('utf8'), isBinary = False)
-
-    def onMessage(self, payload, isBinary):
-       if isBinary:
-           print("Binary message received: {0} bytes".format(len(payload)))
-       else:
-           print("Text message received: {0}".format(payload.decode('utf8')))
-
 # Callback for ANT+ events
 class Listener(event.EventCallback):
 
@@ -92,7 +80,7 @@ channel2.registerCallback(Listener())
 
 # Web Socket Magic
 ws = create_connection("ws://127.0.0.1:8080")
-ws.send(u'{"cmd":"register", "id":1}'.encode('utf8'))
+ws.send(u'{"cmd":"bike-register", "id":1}'.encode('utf8'))
 
 # Wait
 time.sleep(120)
