@@ -54,4 +54,6 @@ class PowerMessage(Message):
         """
         if self.previous is None:
             return self.instantaneousPower
+        if self.eventCount == self.previous.eventCount:
+            return self.previous.averagePower
         return (self.accumulatedPower - self.previous.accumulatedPower) / (self.eventCount - self.previous.eventCount)

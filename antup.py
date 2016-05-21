@@ -29,10 +29,6 @@ class Listener(event.EventCallback):
         if isinstance(msg, message.ChannelBroadcastDataMessage):
             # Speed and Cadence
             if channel.name == "speedcadence":
-                print("RAW: ", end="")
-                for i in msg.payload:
-                    print("%X" % i + " ", end="")
-                print("")
                 decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload)
                 print("Speed: %f" % decoded.speed(2096))
                 print("Cadence: %f" % decoded.cadence)
@@ -42,10 +38,6 @@ class Listener(event.EventCallback):
             # Power
             if channel.name == "power":
                 if msg.payload[1] == 0x10: # Standard Power Only!
-                    print("RAW: ", end="")
-                    for i in msg.payload:
-                        print("%X" % i + " ", end="")
-                    print("")
                     decoded = PowerMessage(self.previousMessagePower, msg.payload)
                     print("Power: %f" % decoded.averagePower)
                     print("")
@@ -58,6 +50,7 @@ antnode = node.Node(stick)
 antnode.start()
 
 network = node.Network(NETKEY, 'N:ANT+')
+print(network.key, type(network.key))
 antnode.setNetworkKey(0, network)
 
 # Setup Speed & Cadence sensor channel

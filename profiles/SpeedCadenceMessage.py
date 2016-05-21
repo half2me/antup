@@ -31,6 +31,8 @@ class SpeedCadenceMessage(Message):
         """
         if self.previous is None:
             return 0
+        if self.speedEventTime == self.previous.speedEventTime:
+            return self.previous.speed(c)
         return (self.cumulativeSpeedRevolutionCount - self.previous.cumulativeSpeedRevolutionCount) * 1.024 * c / (
             self.speedEventTime - self.previous.speedEventTime)
 
@@ -41,5 +43,7 @@ class SpeedCadenceMessage(Message):
         """
         if self.previous is None:
             return 0
+        if self.cadenceEventTime == self.previous.cadenceEventTime:
+            return self.previous.cadence
         return (self.cumulativeCadenceRevolutionCount - self.previous.cumulativeCadenceRevolutionCount) * 1024 * 60 / (
             self.cadenceEventTime - self.previous.cadenceEventTime)
