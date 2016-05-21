@@ -1,4 +1,5 @@
-from profiles.wrapper import Message, lazyproperty
+from Message import Message
+from wrapper import lazyproperty
 
 
 class SpeedCadenceMessage(Message):

@@ -50,7 +50,6 @@ antnode = node.Node(stick)
 antnode.start()
 
 network = node.Network(NETKEY, 'N:ANT+')
-print(network.key, type(network.key))
 antnode.setNetworkKey(0, network)
 
 # Setup Speed & Cadence sensor channel
