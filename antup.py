@@ -6,6 +6,8 @@ from __future__ import print_function
 import sys
 import time
 
+from websocket import create_connection
+
 from ant.core import driver
 from ant.core import node
 from ant.core import event
@@ -16,7 +18,6 @@ from profiles.PowerMessage import PowerMessage
 from profiles.SpeedCadenceMessage import SpeedCadenceMessage
 
 NETKEY = '\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
-
 
 # Callback for ANT+ events
 class Listener(event.EventCallback):
@@ -30,9 +31,11 @@ class Listener(event.EventCallback):
             # Speed and Cadence
             if channel.name == "speedcadence":
                 decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload)
+
                 print("Speed: %f" % decoded.speed(2096))
                 print("Cadence: %f" % decoded.cadence)
                 print("")
+                ws.send('{"cmd":"bike-update", "speed":' + str(decoded.speed(2096)) + ', "cadence":' + str(decoded.cadence) + '}')
                 self.previousMessageSpeedCadence = decoded
 
             # Power
@@ -41,6 +44,7 @@ class Listener(event.EventCallback):
                     decoded = PowerMessage(self.previousMessagePower, msg.payload)
                     print("Power: %f" % decoded.averagePower)
                     print("")
+                    ws.send('{"cmd":"bike-update", "power":' + str(decoded.averagePower) + '}')
                     self.previousMessagePower = None
 
 
@@ -74,8 +78,12 @@ channel2.frequency = 57
 channel2.open()
 channel2.registerCallback(Listener())
 
+# Web Socket Magic
+ws = create_connection("ws://127.0.0.1:8080")
+ws.send(u'{"cmd":"bike-register", "id":1}'.encode('utf8'))
+
 # Wait
-time.sleep(120)
+time.sleep(60*60)
 
 # Shutdown
 channel1.close()
@@ -83,3 +91,4 @@ channel1.unassign()
 channel2.close()
 channel2.unassign()
 antnode.stop()
+ws.close()
