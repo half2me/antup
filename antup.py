@@ -19,7 +19,7 @@ from ant.core.constants import *
 from profiles.PowerMessage import PowerMessage
 from profiles.SpeedCadenceMessage import SpeedCadenceMessage
 
-NETKEY = '\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
+NETKEY = b'\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
 
 # Callback for ANT+ events
 class Listener(event.EventCallback):

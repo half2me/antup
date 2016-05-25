@@ -1,4 +1,4 @@
-from Message import Message
+from profiles.Message import Message
 from wrapper import lazyproperty
 
 
