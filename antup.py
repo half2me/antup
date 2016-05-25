@@ -4,10 +4,7 @@
 Connect to AMT+ devices and upload data to a server via WebSocket
 """
 from __future__ import print_function
-
 import sys
-import time
-
 from websocket import create_connection, socket, WebSocketConnectionClosedException
 
 from ant.core import driver
@@ -21,9 +18,16 @@ from profiles.SpeedCadenceMessage import SpeedCadenceMessage
 
 NETKEY = b'\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
 
+id = 1
+bikeId = 0
+
+if len(sys.argv) >= 2:
+    id = sys.argv[1]
+if len(sys.argv) >= 3:
+    bikeId = sys.argv[2]
+
 # Callback for ANT+ events
 class Listener(event.EventCallback):
-
     def __init__(self):
         self.previousMessageSpeedCadence = None
         self.previousMessagePower = None
@@ -34,19 +38,20 @@ class Listener(event.EventCallback):
             if channel.name == "speedcadence":
                 decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload)
 
-                #print("Speed: %f" % decoded.speed(2096))
-                #print("Cadence: %f" % decoded.cadence)
-                #print("")
+                # print("Speed: %f" % decoded.speed(2096))
+                # print("Cadence: %f" % decoded.cadence)
+                # print("")
                 print(".", endl="")
-                ws.send('{"cmd":"bike-update", "speed":' + str(decoded.speed(2096)) + ', "cadence":' + str(decoded.cadence) + '}')
+                ws.send('{"cmd":"bike-update", "speed":' + str(decoded.speed(2096)) + ', "cadence":' + str(
+                    decoded.cadence) + '}')
                 self.previousMessageSpeedCadence = decoded
 
             # Power
             if channel.name == "power":
-                if msg.payload[1] == 0x10: # Standard Power Only!
+                if msg.payload[1] == 0x10:  # Standard Power Only!
                     decoded = PowerMessage(self.previousMessagePower, msg.payload)
-                    #print("Power: %f" % decoded.averagePower)
-                    #print("")
+                    # print("Power: %f" % decoded.averagePower)
+                    # print("")
                     print(".", endl="")
                     ws.send('{"cmd":"bike-update", "power":' + str(decoded.averagePower) + '}')
                     self.previousMessagePower = None
@@ -64,7 +69,7 @@ antnode.setNetworkKey(0, network)
 channel1 = antnode.getFreeChannel()
 channel1.name = "speedcadence"
 channel1.assign(network, CHANNEL_TYPE_TWOWAY_RECEIVE)
-channel1.setID(121, 0, 0)
+channel1.setID(121, int(bikeId), 0)
 channel1.searchTimeout = TIMEOUT_NEVER
 channel1.period = 8086
 channel1.frequency = 57
@@ -75,7 +80,7 @@ channel1.registerCallback(Listener())
 channel2 = antnode.getFreeChannel()
 channel2.name = 'power'
 channel2.assign(network, CHANNEL_TYPE_TWOWAY_RECEIVE)
-channel2.setID(11, 0, 0)
+channel2.setID(11, int(bikeId), 0)
 channel2.searchTimeout = TIMEOUT_NEVER
 channel2.period = 8182
 channel2.frequency = 57
@@ -86,7 +91,7 @@ ws = None
 try:
     # Web Socket Magic
     ws = create_connection("ws://127.0.0.1:8080")
-    ws.send('{"cmd":"bike-register", "id":1}')
+    ws.send('{"cmd":"bike-register", "id":' + str(id) + '}')
 
     while True:
         recv = ws.recv()
@@ -105,5 +110,3 @@ finally:
     channel2.close()
     channel2.unassign()
     antnode.stop()
-
-
