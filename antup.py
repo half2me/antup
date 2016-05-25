@@ -1,5 +1,7 @@
+#!/usr/bin/python
+
 """
-Connect to AMT+ devices and upload data to a server via ZMQ
+Connect to AMT+ devices and upload data to a server via WebSocket
 """
 from __future__ import print_function
 
