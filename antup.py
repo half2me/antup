@@ -8,7 +8,7 @@ from __future__ import print_function
 import sys
 import time
 
-from websocket import create_connection
+from websocket import create_connection, socket, WebSocketConnectionClosedException
 
 from ant.core import driver
 from ant.core import node
@@ -34,9 +34,10 @@ class Listener(event.EventCallback):
             if channel.name == "speedcadence":
                 decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload)
 
-                print("Speed: %f" % decoded.speed(2096))
-                print("Cadence: %f" % decoded.cadence)
-                print("")
+                #print("Speed: %f" % decoded.speed(2096))
+                #print("Cadence: %f" % decoded.cadence)
+                #print("")
+                print(".", endl="")
                 ws.send('{"cmd":"bike-update", "speed":' + str(decoded.speed(2096)) + ', "cadence":' + str(decoded.cadence) + '}')
                 self.previousMessageSpeedCadence = decoded
 
@@ -44,8 +45,9 @@ class Listener(event.EventCallback):
             if channel.name == "power":
                 if msg.payload[1] == 0x10: # Standard Power Only!
                     decoded = PowerMessage(self.previousMessagePower, msg.payload)
-                    print("Power: %f" % decoded.averagePower)
-                    print("")
+                    #print("Power: %f" % decoded.averagePower)
+                    #print("")
+                    print(".", endl="")
                     ws.send('{"cmd":"bike-update", "power":' + str(decoded.averagePower) + '}')
                     self.previousMessagePower = None
 
@@ -80,17 +82,28 @@ channel2.frequency = 57
 channel2.open()
 channel2.registerCallback(Listener())
 
-# Web Socket Magic
-ws = create_connection("ws://127.0.0.1:8080")
-ws.send(u'{"cmd":"bike-register", "id":1}'.encode('utf8'))
+ws = None
+try:
+    # Web Socket Magic
+    ws = create_connection("ws://127.0.0.1:8080")
+    ws.send('{"cmd":"bike-register", "id":1}')
 
-# Wait
-time.sleep(60*60)
+    while True:
+        recv = ws.recv()
+        print(recv)
+except socket.error as err:
+    print("Disconnected!")
+except WebSocketConnectionClosedException:
+    print("Disconnected!")
+except KeyboardInterrupt:
+    print("Exiting...")
+finally:
+    if ws is not None:
+        ws.close()
+    channel1.close()
+    channel1.unassign()
+    channel2.close()
+    channel2.unassign()
+    antnode.stop()
 
-# Shutdown
-channel1.close()
-channel1.unassign()
-channel2.close()
-channel2.unassign()
-antnode.stop()
-ws.close()
+
