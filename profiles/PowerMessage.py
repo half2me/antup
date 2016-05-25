@@ -5,6 +5,9 @@ from wrapper import lazyproperty
 class PowerMessage(Message):
     """ Message from Power Meter """
 
+    maxAccumulatedPower = 65536
+    maxEventCount = 256
+
     @lazyproperty
     def dataPageNumber(self):
         """
@@ -46,6 +49,26 @@ class PowerMessage(Message):
         return (self.raw[8] << 8) | self.raw[7]
 
     @lazyproperty
+    def accumulatedPowerDiff(self):
+        if self.previous is None:
+            return None
+        elif self.accumulatedPower < self.previous.accumulatedPower:
+            # Rollover
+            return (self.accumulatedPower - self.previous.accumulatedPower) + self.maxAccumulatedPower
+        else:
+            return self.accumulatedPower - self.previous.accumulatedPower
+
+    @lazyproperty
+    def eventCountDiff(self):
+        if self.previous is None:
+            return None
+        elif self.eventCount < self.previous.eventCount:
+            # Rollover
+            return (self.eventCount - self.previous.eventCount) + self.maxEventCount
+        else:
+            return self.eventCount - self.previous.eventCount
+
+    @lazyproperty
     def averagePower(self):
         """
         Under normal conditions with complete RF reception, average power equals instantaneous power.
@@ -57,4 +80,4 @@ class PowerMessage(Message):
             return self.instantaneousPower
         if self.eventCount == self.previous.eventCount:
             return self.previous.averagePower
-        return (self.accumulatedPower - self.previous.accumulatedPower) / (self.eventCount - self.previous.eventCount)
+        return self.accumulatedPowerDiff / self.eventCountDiff
