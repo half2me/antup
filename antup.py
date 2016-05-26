@@ -4,8 +4,12 @@
 Connect to AMT+ devices and upload data to a server via WebSocket
 """
 from __future__ import print_function
+
+import atexit
 import sys
+import json
 from websocket import create_connection, socket, WebSocketConnectionClosedException
+from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_StepperMotor
 
 from ant.core import driver
 from ant.core import node
@@ -17,14 +21,54 @@ from profiles.PowerMessage import PowerMessage
 from profiles.SpeedCadenceMessage import SpeedCadenceMessage
 
 NETKEY = b'\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
-
 id = 1
 bikeId = 0
+servo = 0
+mh = Adafruit_MotorHAT()
 
 if len(sys.argv) >= 2:
     id = sys.argv[1]
 if len(sys.argv) >= 3:
     bikeId = sys.argv[2]
+
+
+# Exit strategy
+def graceful():
+    # Reset steppers
+    if not servo:
+        setServo(False)
+    # Close off connections and ANT+
+    if ws is not None:
+        ws.close()
+    if channel1 is not None:
+        channel1.close()
+        channel1.unassign()
+    if channel2 is not None:
+        channel2.close()
+        channel2.unassign()
+    if antnode is not None:
+        antnode.stop()
+
+
+atexit.register(graceful)
+
+# Steppers
+stepper = mh.getStepper(200, 1)  # 200 steps/rev, motor port #1
+stepper.setSpeed(60)  # 30 RPM
+
+
+# Stepper calibration routine
+# stepper.step(200, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)  # Spin out max
+# stepper.step(200, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)  # Spin to abs value
+
+
+def setServo(param):
+    if param != servo:
+        if param:
+            stepper.step(200, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
+        else:
+            stepper.step(200, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
+
 
 # Callback for ANT+ events
 class Listener(event.EventCallback):
@@ -87,26 +131,21 @@ channel2.frequency = 57
 channel2.open()
 channel2.registerCallback(Listener())
 
-ws = None
 try:
     # Web Socket Magic
     ws = create_connection("ws://127.0.0.1:8080")
     ws.send('{"cmd":"bike-register", "id":' + str(id) + '}')
 
+    # Run
     while True:
-        recv = ws.recv()
-        print(recv)
+        recv = json.loads(ws.recv())
+        if hasattr(recv, "cmd") and hasattr(recv, "value"):
+            if recv.cmd == "servo":
+                setServo(bool(recv.cmd.value))
+
 except socket.error as err:
     print("Disconnected!")
 except WebSocketConnectionClosedException:
     print("Disconnected!")
 except KeyboardInterrupt:
     print("Exiting...")
-finally:
-    if ws is not None:
-        ws.close()
-    channel1.close()
-    channel1.unassign()
-    channel2.close()
-    channel2.unassign()
-    antnode.stop()
