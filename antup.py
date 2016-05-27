@@ -41,7 +41,7 @@ class Listener(event.EventCallback):
                 # print("Speed: %f" % decoded.speed(2096))
                 # print("Cadence: %f" % decoded.cadence)
                 # print("")
-                print(".", endl="")
+                print(".", end="")
                 ws.send('{"cmd":"bike-update", "speed":' + str(decoded.speed(2096)) + ', "cadence":' + str(
                     decoded.cadence) + '}')
                 self.previousMessageSpeedCadence = decoded
@@ -52,7 +52,7 @@ class Listener(event.EventCallback):
                     decoded = PowerMessage(self.previousMessagePower, msg.payload)
                     # print("Power: %f" % decoded.averagePower)
                     # print("")
-                    print(".", endl="")
+                    print(".", end="")
                     ws.send('{"cmd":"bike-update", "power":' + str(decoded.averagePower) + '}')
                     self.previousMessagePower = None
 
