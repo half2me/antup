@@ -10,15 +10,16 @@ class SpeedCadenceMessage(Message):
         self.staleSpeedCount = staleCadenceCount
         self.staleCadenceCount = staleCadenceCount
 
-        if self.speedEventTime == self.previous.speedEventTime:
-            self.staleSpeedCount[0] += 1
-        else:
-            self.staleSpeedCount[0] = 0
+        if self.previous is not None:
+            if self.speedEventTime == self.previous.speedEventTime:
+                self.staleSpeedCount[0] += 1
+            else:
+                self.staleSpeedCount[0] = 0
 
-        if self.cadenceEventTime == self.previous.cadenceEventTime:
-            self.staleCadenceCount[0] += 1
-        else:
-            self.staleCadenceCount[0] = 0
+            if self.cadenceEventTime == self.previous.cadenceEventTime:
+                self.staleCadenceCount[0] += 1
+            else:
+                self.staleCadenceCount[0] = 0
 
     maxCadenceEventTime = 65536
     maxSpeedEventTime = 65536
