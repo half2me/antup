@@ -37,6 +37,7 @@ if len(sys.argv) >= 3:
 
 
 def setServo(param):
+    global servo
     if param != servo:
         servo = param
         if param:
@@ -47,6 +48,7 @@ def setServo(param):
 
 # Exit strategy
 def graceful():
+    global servo
     # Reset steppers
     if not servo:
         print("resetting wheel state")
