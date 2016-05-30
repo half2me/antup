@@ -58,15 +58,15 @@ def graceful():
     mh.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
 
     # Close off connections and ANT+
-    if ws in globals():
+    if 'ws' in globals():
         ws.close()
-    if channel1 in globals():
+    if 'channel1' in globals():
         channel1.close()
         channel1.unassign()
-    if channel2 in globals():
+    if 'channel2' in globals():
         channel2.close()
         channel2.unassign()
-    if antnode in globals():
+    if 'antnode' in globals():
         antnode.stop()
 
 
