@@ -30,7 +30,6 @@ mh = Adafruit_MotorHAT()
 stepper = mh.getStepper(200, 1)  # 200 steps/rev, motor port #1
 stepper.setSpeed(30)
 
-
 if len(sys.argv) >= 2:
     id = sys.argv[1]
 if len(sys.argv) >= 3:
@@ -39,35 +38,26 @@ if len(sys.argv) >= 3:
 
 def setServo(param):
     if param != servo:
+        servo = param
         if param:
-            stepper.step(200 * 1, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
+            stepper.step(200, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
         else:
-            stepper.step(200 * 1, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
+            stepper.step(200, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
 
 
 # Exit strategy
 def graceful():
     # Reset steppers
     if not servo:
+        print("resetting wheel state")
         setServo(True)
 
     # Release steppers
+    print("releasing motors...")
     mh.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
-
-    # Close off connections and ANT+
-    if 'ws' in globals():
-        ws.close()
-    if 'channel1' in globals():
-        channel1.close()
-        channel1.unassign()
-    if 'channel2' in globals():
-        channel2.close()
-        channel2.unassign()
-    if 'antnode' in globals():
-        antnode.stop()
 
 
 atexit.register(graceful)
@@ -134,6 +124,7 @@ channel2.frequency = 57
 channel2.open()
 channel2.registerCallback(Listener())
 
+ws = None
 try:
     # Web Socket Magic
     ws = create_connection("ws://127.0.0.1:8080")
@@ -142,9 +133,10 @@ try:
     # Run
     while True:
         recv = json.loads(ws.recv())
-        if hasattr(recv, "cmd") and hasattr(recv, "value"):
-            if recv.cmd == "servo":
-                setServo(bool(recv.cmd.value))
+        print(str(recv))
+        if "cmd" in recv and "value" in recv:
+            if recv["cmd"] == "servo":
+                setServo(bool(recv["value"]))
 
 except socket.error as err:
     print("Disconnected!")
@@ -152,3 +144,12 @@ except WebSocketConnectionClosedException:
     print("Disconnected!")
 except KeyboardInterrupt:
     print("Exiting...")
+
+# Close off connections and ANT+
+if ws is not None:
+    ws.close()
+channel1.close()
+channel1.unassign()
+channel2.close()
+channel2.unassign()
+antnode.stop()
