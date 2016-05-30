@@ -50,7 +50,7 @@ class SpeedCadenceMessage(Message):
     @lazyproperty
     def speedEventTimeDiff(self):
         if self.previous is None:
-            return None
+            return 0
         elif self.speedEventTime < self.previous.speedEventTime:
             # Rollover
             return (self.speedEventTime - self.previous.speedEventTime) + self.maxSpeedEventTime
@@ -60,7 +60,7 @@ class SpeedCadenceMessage(Message):
     @lazyproperty
     def cadenceEventTimeDiff(self):
         if self.previous is None:
-            return None
+            return 0
         elif self.cadenceEventTime < self.previous.cadenceEventTime:
             # Rollover
             return (self.cadenceEventTime - self.previous.cadenceEventTime) + self.maxCadenceEventTime
