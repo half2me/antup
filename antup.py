@@ -82,10 +82,10 @@ class Listener(event.EventCallback):
             if channel.name == "speedcadence":
                 decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload)
 
-                # print("Speed: %f" % decoded.speed(2096))
-                # print("Cadence: %f" % decoded.cadence)
-                # print("")
-                print(".", endl="")
+                print("Speed: %f" % decoded.speed(2096))
+                print("Cadence: %f" % decoded.cadence)
+                print("")
+                # print(".", end="")
                 ws.send('{"cmd":"bike-update", "speed":' + str(decoded.speed(2096)) + ', "cadence":' + str(
                     decoded.cadence) + '}')
                 self.previousMessageSpeedCadence = decoded
@@ -94,9 +94,9 @@ class Listener(event.EventCallback):
             if channel.name == "power":
                 if msg.payload[1] == 0x10:  # Standard Power Only!
                     decoded = PowerMessage(self.previousMessagePower, msg.payload)
-                    # print("Power: %f" % decoded.averagePower)
-                    # print("")
-                    print(".", endl="")
+                    print("Power: %f" % decoded.averagePower)
+                    print("")
+                    # print(".", end="")
                     ws.send('{"cmd":"bike-update", "power":' + str(decoded.averagePower) + '}')
                     self.previousMessagePower = None
 
