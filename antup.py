@@ -23,8 +23,13 @@ from profiles.SpeedCadenceMessage import SpeedCadenceMessage
 NETKEY = b'\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
 id = 1
 bikeId = 0
-servo = 0
+servo = True
+
+# Steppers
 mh = Adafruit_MotorHAT()
+stepper = mh.getStepper(200, 1)  # 200 steps/rev, motor port #1
+stepper.setSpeed(30)
+
 
 if len(sys.argv) >= 2:
     id = sys.argv[1]
@@ -32,43 +37,40 @@ if len(sys.argv) >= 3:
     bikeId = sys.argv[2]
 
 
+def setServo(param):
+    if param != servo:
+        if param:
+            stepper.step(200 * 1, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
+        else:
+            stepper.step(200 * 1, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
+
+
 # Exit strategy
 def graceful():
     # Reset steppers
     if not servo:
-        setServo(False)
+        setServo(True)
+
+    # Release steppers
+    mh.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
+    mh.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
+    mh.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
+    mh.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
+
     # Close off connections and ANT+
-    if ws is not None:
+    if ws in globals():
         ws.close()
-    if channel1 is not None:
+    if channel1 in globals():
         channel1.close()
         channel1.unassign()
-    if channel2 is not None:
+    if channel2 in globals():
         channel2.close()
         channel2.unassign()
-    if antnode is not None:
+    if antnode in globals():
         antnode.stop()
 
 
 atexit.register(graceful)
-
-# Steppers
-stepper = mh.getStepper(200, 1)  # 200 steps/rev, motor port #1
-
-
-# Stepper calibration routine
-stepper.setSpeed(100)
-stepper.step(200 * 10, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)  # Spin out max
-stepper.setSpeed(30)
-stepper.step(200 * 3, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)  # Spin to abs value
-
-
-def setServo(param):
-    if param != servo:
-        if param:
-            stepper.step(200 * 1, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
-        else:
-            stepper.step(200 * 1, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
 
 
 # Callback for ANT+ events
