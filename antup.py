@@ -54,20 +54,21 @@ atexit.register(graceful)
 
 # Steppers
 stepper = mh.getStepper(200, 1)  # 200 steps/rev, motor port #1
-stepper.setSpeed(60)  # 30 RPM
 
 
 # Stepper calibration routine
-# stepper.step(200, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)  # Spin out max
-# stepper.step(200, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)  # Spin to abs value
+stepper.setSpeed(100)
+stepper.step(200 * 10, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)  # Spin out max
+stepper.setSpeed(30)
+stepper.step(200 * 3, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)  # Spin to abs value
 
 
 def setServo(param):
     if param != servo:
         if param:
-            stepper.step(200, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
+            stepper.step(200 * 1, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
         else:
-            stepper.step(200, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
+            stepper.step(200 * 1, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
 
 
 # Callback for ANT+ events
