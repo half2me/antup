@@ -32,5 +32,6 @@ except WebSocketConnectionClosedException:
     print("Disconnected!")
 except KeyboardInterrupt:
     print("Exiting...")
-if ws is not None:
-    ws.close()
+finally:
+    if ws is not None:
+        ws.close()
