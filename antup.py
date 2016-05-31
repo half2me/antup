@@ -148,10 +148,11 @@ except KeyboardInterrupt:
     print("Exiting...")
 
 # Close off connections and ANT+
-if ws is not None:
-    ws.close()
-channel1.close()
-channel1.unassign()
-channel2.close()
-channel2.unassign()
-antnode.stop()
+finally:
+    if ws is not None:
+        ws.close()
+    channel1.close()
+    channel1.unassign()
+    channel2.close()
+    channel2.unassign()
+    antnode.stop()
