@@ -25,8 +25,8 @@ class SpeedCadenceMessage(Message):
     maxSpeedEventTime = 65536
     maxSpeedRevCount = 65536
     maxCadenceRevCount = 65536
-    maxStaleSpeedCount = 5
-    maxStaleCadenceCount = 5
+    maxStaleSpeedCount = 7
+    maxStaleCadenceCount = 7
 
     @lazyproperty
     def cadenceEventTime(self):
