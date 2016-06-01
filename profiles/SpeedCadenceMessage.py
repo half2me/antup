@@ -5,10 +5,28 @@ from wrapper import lazyproperty
 class SpeedCadenceMessage(Message):
     """ Message from Speed & Cadence sensor """
 
+    def __init__(self, previous, raw, staleSpeedCount, staleCadenceCount):
+        Message.__init__(self, previous, raw)
+        self.staleSpeedCount = staleCadenceCount
+        self.staleCadenceCount = staleCadenceCount
+
+        if self.previous is not None:
+            if self.speedEventTime == self.previous.speedEventTime:
+                self.staleSpeedCount[0] += 1
+            else:
+                self.staleSpeedCount[0] = 0
+
+            if self.cadenceEventTime == self.previous.cadenceEventTime:
+                self.staleCadenceCount[0] += 1
+            else:
+                self.staleCadenceCount[0] = 0
+
     maxCadenceEventTime = 65536
     maxSpeedEventTime = 65536
     maxSpeedRevCount = 65536
     maxCadenceRevCount = 65536
+    maxStaleSpeedCount = 7
+    maxStaleCadenceCount = 7
 
     @lazyproperty
     def cadenceEventTime(self):
@@ -33,7 +51,7 @@ class SpeedCadenceMessage(Message):
     @lazyproperty
     def speedEventTimeDiff(self):
         if self.previous is None:
-            return None
+            return 0
         elif self.speedEventTime < self.previous.speedEventTime:
             # Rollover
             return (self.speedEventTime - self.previous.speedEventTime) + self.maxSpeedEventTime
@@ -43,7 +61,7 @@ class SpeedCadenceMessage(Message):
     @lazyproperty
     def cadenceEventTimeDiff(self):
         if self.previous is None:
-            return None
+            return 0
         elif self.cadenceEventTime < self.previous.cadenceEventTime:
             # Rollover
             return (self.cadenceEventTime - self.previous.cadenceEventTime) + self.maxCadenceEventTime
@@ -80,6 +98,8 @@ class SpeedCadenceMessage(Message):
         if self.previous is None:
             return 0
         if self.speedEventTime == self.previous.speedEventTime:
+            if self.staleSpeedCount[0] > self.maxStaleSpeedCount:
+                return 0
             return self.previous.speed(c)
         return self.speedRevCountDiff * 1.024 * c / self.speedEventTimeDiff
 
@@ -91,5 +111,7 @@ class SpeedCadenceMessage(Message):
         if self.previous is None:
             return 0
         if self.cadenceEventTime == self.previous.cadenceEventTime:
+            if self.staleCadenceCount[0] > self.maxStaleCadenceCount:
+                return 0
             return self.previous.cadence
         return self.cadenceRevCountDiff * 1024 * 60 / self.cadenceEventTimeDiff
