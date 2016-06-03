@@ -70,13 +70,15 @@ class Listener(event.EventCallback):
     def __init__(self):
         self.previousMessageSpeedCadence = None
         self.previousMessagePower = None
+        self.staleSpeedCount = [0]
+        self.staleCadenceCount = [0]
 
     def process(self, msg, channel):
         if isinstance(msg, message.ChannelBroadcastDataMessage):
             # Speed and Cadence
             if channel.name == "speedcadence":
-                decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload)
-
+                decoded = SpeedCadenceMessage(self.previousMessageSpeedCadence, msg.payload, self.staleSpeedCount,
+                                              self.staleCadenceCount)
                 print("Speed: %f" % decoded.speed(2096))
                 print("Cadence: %f" % decoded.cadence)
                 print("")
