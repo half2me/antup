@@ -4,8 +4,12 @@
 Connect to AMT+ devices and upload data to a server via WebSocket
 """
 from __future__ import print_function
+
+import atexit
 import sys
+import json
 from websocket import create_connection, socket, WebSocketConnectionClosedException
+from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_StepperMotor
 
 from ant.core import driver
 from ant.core import node
@@ -17,14 +21,53 @@ from profiles.PowerMessage import PowerMessage
 from profiles.SpeedCadenceMessage import SpeedCadenceMessage
 
 NETKEY = b'\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
-
 id = 1
 bikeId = 0
+servo = True
+servoSwitchSteps = 100
+servoCalibrateSteps = 0
+
+# Steppers
+mh = Adafruit_MotorHAT()
+stepper = mh.getStepper(200, 1)  # 200 steps/rev, motor port #1
+stepper.setSpeed(30)
 
 if len(sys.argv) >= 2:
     id = sys.argv[1]
 if len(sys.argv) >= 3:
     bikeId = sys.argv[2]
+
+
+def setServo(param):
+    global servo
+    if param != servo:
+        servo = param
+        if param:
+            stepper.step(servoSwitchSteps, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
+            releaseSteppers()
+        else:
+            stepper.step(servoSwitchSteps, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
+            releaseSteppers()
+
+# Release steppers
+def releaseSteppers():
+    print("releasing motors...")
+    mh.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
+    mh.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
+    mh.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
+    mh.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
+
+# Exit strategy
+def graceful():
+    global servo
+    # Reset and release steppers
+    if not servo:
+        print("resetting wheel state")
+        setServo(True)
+    releaseSteppers()
+
+
+atexit.register(graceful)
 
 
 # Callback for ANT+ events
@@ -96,15 +139,22 @@ try:
     ws = create_connection("ws://127.0.0.1:8080")
     ws.send('{"cmd":"bike-register", "id":' + str(id) + '}')
 
+    # Run
     while True:
-        recv = ws.recv()
-        print(recv)
+        recv = json.loads(ws.recv())
+        print(str(recv))
+        if "cmd" in recv and "value" in recv:
+            if recv["cmd"] == "servo":
+                setServo(bool(recv["value"]))
+
 except socket.error as err:
     print("Disconnected!")
 except WebSocketConnectionClosedException:
     print("Disconnected!")
 except KeyboardInterrupt:
     print("Exiting...")
+
+# Close off connections and ANT+
 finally:
     if ws is not None:
         ws.close()
