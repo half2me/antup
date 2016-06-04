@@ -42,24 +42,27 @@ def setServo(param):
         servo = param
         if param:
             stepper.step(200, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
+            releaseSteppers()
         else:
             stepper.step(200, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
+            releaseSteppers()
 
-
-# Exit strategy
-def graceful():
-    global servo
-    # Reset steppers
-    if not servo:
-        print("resetting wheel state")
-        setServo(True)
-
-    # Release steppers
+# Release steppers
+def releaseSteppers():
     print("releasing motors...")
     mh.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
+
+# Exit strategy
+def graceful():
+    global servo
+    # Reset and release steppers
+    if not servo:
+        print("resetting wheel state")
+        setServo(True)
+    releaseSteppers()
 
 
 atexit.register(graceful)
