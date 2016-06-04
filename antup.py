@@ -24,6 +24,8 @@ NETKEY = b'\xB9\xA5\x21\xFB\xBD\x72\xC3\x45'
 id = 1
 bikeId = 0
 servo = True
+servoSwitchSteps = 100
+servoCalibrateSteps = 0
 
 # Steppers
 mh = Adafruit_MotorHAT()
@@ -41,10 +43,10 @@ def setServo(param):
     if param != servo:
         servo = param
         if param:
-            stepper.step(200, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
+            stepper.step(servoSwitchSteps, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
             releaseSteppers()
         else:
-            stepper.step(200, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
+            stepper.step(servoSwitchSteps, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
             releaseSteppers()
 
 # Release steppers
